@@ -127,7 +127,9 @@ export default function TranslationTabs({
                       >
                         <i className={`fas fa-${isSpeaking ? "volume-up" : "play"} text-sm`}></i>
                       </button>
-                      <div className="ml-3 text-sm text-gray-600">Play translation</div>
+                      <div className="ml-3 text-sm text-gray-600">
+                        Speak in English <span className="text-xs">({voicesLoaded ? 'Ready' : 'Loading...'})</span>
+                      </div>
                     </div>
                     
                     <button 
