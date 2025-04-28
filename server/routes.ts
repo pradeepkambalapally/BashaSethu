@@ -12,13 +12,29 @@ async function translateText(text: string): Promise<{
   try {
     console.log(`Translating Banjara text: "${text}"`);
     
-    // For English translation using LibreTranslate
-    const englishResponse = await axios.post("https://libretranslate.de/translate", {
-      q: text,
-      source: "auto", // Auto-detect source language
-      target: "en",   // English
-      format: "text"
-    });
+    // Set a short timeout to prevent long waiting times
+    const axiosConfig = {
+      timeout: 3000 // 3 seconds timeout
+    };
+    
+    // Initialize variables to hold API responses
+    let englishApiTranslation = "";
+    
+    try {
+      // For English translation using LibreTranslate with a fast timeout
+      const englishResponse = await axios.post("https://libretranslate.de/translate", {
+        q: text,
+        source: "auto", // Auto-detect source language
+        target: "en",   // English
+        format: "text"
+      }, axiosConfig);
+      
+      englishApiTranslation = englishResponse.data.translatedText;
+    } catch (error) {
+      const apiError = error as Error;
+      console.log("English translation API timeout/error - using dictionary only:", apiError.message);
+      englishApiTranslation = text; // Fall back to original text
+    }
     
     // Comprehensive Banjara-Telugu-English dictionary with accurate translations
     // This represents a small subset of Banjara vocabulary as a starting point
@@ -137,9 +153,9 @@ async function translateText(text: string): Promise<{
         }
       }
     } else {
-      // If no matches in our dictionary, use LibreTranslate
-      // For English we can use the API directly
-      englishParts = [englishResponse.data.translatedText];
+      // If no matches in our dictionary, use the API translation if available
+      // or fallback to the original text
+      englishParts = [englishApiTranslation || text];
       
       // For Telugu we need to indicate that it's machine-translated
       // Since LibreTranslate doesn't support Telugu, we're using transliteration
