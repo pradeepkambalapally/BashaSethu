@@ -4,30 +4,66 @@ import { storage } from "./storage";
 import { insertTranslationSchema, translationResponseSchema } from "@shared/schema";
 import axios from "axios";
 
-// Translation function using LibreTranslate API
+// Translation function using a combination of translation services
 async function translateText(text: string): Promise<{
   teluguText: string;
   englishText: string;
 }> {
   try {
-    // LibreTranslate public API endpoint
-    const LIBRE_TRANSLATE_API = "https://libretranslate.com/translate";
+    console.log(`Translating Banjara text: "${text}"`);
     
-    // For English translation
-    const englishResponse = await axios.post(LIBRE_TRANSLATE_API, {
+    // For English translation using LibreTranslate
+    const englishResponse = await axios.post("https://libretranslate.de/translate", {
       q: text,
       source: "auto", // Auto-detect source language
-      target: "en", // English
-      format: "text",
-      api_key: "" // Public API may have limits, can be empty for now
+      target: "en",   // English
+      format: "text"
     });
     
-    // Note: LibreTranslate doesn't support Telugu directly
-    // We'll use a message explaining this limitation
+    // For Telugu translation - using a different approach since LibreTranslate doesn't support Telugu
+    // First translate to Hindi as an intermediary
+    const hindiResponse = await axios.post("https://libretranslate.de/translate", {
+      q: text,
+      source: "auto", // Auto-detect source language
+      target: "hi",   // Hindi
+      format: "text"
+    });
+    
+    // Since we can't directly get Telugu, we'll use a predefined mapping for common Banjara phrases
+    // This is a simplified approach for demo purposes
+    const banjaraToTeluguMap: Record<string, string> = {
+      "namaskar": "నమస్కారం", // Hello/Greetings in Telugu
+      "dhanyavad": "ధన్యవాదాలు", // Thank you in Telugu
+      "gor laga": "నమస్కారం", // Respectful greeting in Telugu
+      "kem cho": "ఎలా ఉన్నారు", // How are you in Telugu
+      "ha": "అవును", // Yes in Telugu
+      "nahi": "కాదు", // No in Telugu
+      "accha": "మంచిది", // Good in Telugu
+      "thik hai": "సరే", // Okay in Telugu
+      "call do": "కాల్ చేయండి", // Call in Telugu
+    };
+    
+    // Check if the text includes any of our mapped phrases
+    let teluguText = "";
+    const lowerText = text.toLowerCase().trim();
+    
+    // Try to find matches in our map
+    for (const [banjaraPhrase, teluguTranslation] of Object.entries(banjaraToTeluguMap)) {
+      if (lowerText.includes(banjaraPhrase.toLowerCase())) {
+        teluguText = teluguTranslation;
+        break;
+      }
+    }
+    
+    // If no match found, use Hindi as closest approximation
+    if (!teluguText) {
+      teluguText = hindiResponse.data.translatedText + " (హిందీలో)";
+    }
+    
+    console.log(`Translation results - English: "${englishResponse.data.translatedText}", Telugu: "${teluguText}"`);
     
     return {
-      // Since LibreTranslate doesn't support Telugu, we include a note
-      teluguText: `${text} (Telugu translation unavailable - LibreTranslate doesn't support Telugu)`,
+      teluguText: teluguText,
       englishText: englishResponse.data.translatedText
     };
     
@@ -35,8 +71,8 @@ async function translateText(text: string): Promise<{
     console.error('Translation API error:', error);
     // Fallback in case of API error
     return { 
-      teluguText: `${text} (Translation service unavailable)`, 
-      englishText: `${text} (Translation service unavailable)` 
+      teluguText: `${text} (అనువాదం అందుబాటులో లేదు)`, // "Translation unavailable" in Telugu
+      englishText: `${text} (Translation unavailable)` 
     };
   }
 }
