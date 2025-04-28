@@ -101,6 +101,10 @@ async function translateText(text: string): Promise<{
       // Food and ingredients
       "inda": { telugu: "గుడ్డు", english: "Egg" },
       "guddu": { telugu: "గుడ్డు", english: "Egg" },
+      
+      // Actions and verbs
+      "khaldo": { telugu: "తిన్నా", english: "Ate" },
+      "thinna": { telugu: "తిన్నా", english: "Ate" },
     };
     
     // Check for exact matches or word fragments in our dictionary
