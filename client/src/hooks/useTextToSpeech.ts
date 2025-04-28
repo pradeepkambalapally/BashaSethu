@@ -79,10 +79,10 @@ export default function useTextToSpeech({
     });
   };
 
-  // Generate speech using Google Translate TTS API
-  const getGoogleTTSUrl = (text: string, lang: string): string => {
-    // Note: This is an unofficial API and has usage limitations
-    return `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
+  // Generate speech using our server API proxy
+  const getTeluguTTSUrl = (text: string): string => {
+    // Use our server endpoint to proxy the TTS request
+    return `/api/tts?text=${encodeURIComponent(text)}&lang=te`;
   };
   
   // Speak text with the given language
@@ -93,10 +93,10 @@ export default function useTextToSpeech({
     }
     
     try {
-      // For Telugu use Google Translate TTS API
+      // For Telugu use our server proxy to Google Translate TTS
       if (lang === 'te-IN' || lang === 'te') {
-        console.log('Using Google Translate TTS API for Telugu speech');
-        const url = getGoogleTTSUrl(text, 'te');
+        console.log('Using server proxy for Telugu TTS');
+        const url = getTeluguTTSUrl(text);
         return playAudioFromUrl(url);
       }
       

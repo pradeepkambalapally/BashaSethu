@@ -95,7 +95,7 @@ export default function TranslationTabs({
                         <i className={`fas fa-${isSpeaking ? "volume-up" : "play"} text-sm`}></i>
                       </button>
                       <div className="ml-3 text-sm text-gray-600">
-                        Speak in Telugu <span className="text-xs">(Google TTS)</span>
+                        Speak in Telugu <span className="text-xs">(Server TTS)</span>
                       </div>
                     </div>
                     

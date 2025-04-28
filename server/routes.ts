@@ -237,6 +237,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Text-to-Speech proxy for Telugu
+  app.get("/api/tts", async (req, res) => {
+    try {
+      const { text, lang } = req.query;
+      
+      if (!text) {
+        return res.status(400).json({ message: "Text parameter is required" });
+      }
+      
+      const language = lang || 'te';
+      
+      // Get the TTS URL from Google
+      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text as string)}&tl=${language}&client=tw-ob`;
+      
+      console.log(`Fetching TTS for "${text}" in language "${language}"`);
+      
+      try {
+        // Fetch the audio file
+        const response = await axios({
+          method: 'GET',
+          url: ttsUrl,
+          responseType: 'stream',
+          timeout: 5000,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+          }
+        });
+        
+        // Set appropriate headers
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for a day
+        
+        // Pipe the audio stream directly to the response
+        response.data.pipe(res);
+      } catch (error) {
+        console.error("TTS API Error:", error);
+        return res.status(500).json({ 
+          message: "Failed to fetch text-to-speech audio",
+          details: error instanceof Error ? error.message : "Unknown error"
+        });
+      }
+    } catch (error) {
+      console.error("TTS Server Error:", error);
+      return res.status(500).json({ 
+        message: "Server error in text-to-speech endpoint",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
