@@ -62,9 +62,11 @@ async function translateText(text: string): Promise<{
       "bai": { telugu: "సోదరి", english: "Sister" },
       "bhai": { telugu: "సోదరుడు", english: "Brother" },
       "amma": { telugu: "అమ్మ", english: "Mother" },
+      "yadi": { telugu: "అమ్మా", english: "Mom" },
       "baba": { telugu: "నాన్న", english: "Father" },
       "dada": { telugu: "తాత", english: "Grandfather" },
       "dadi": { telugu: "అమ్మమ్మ", english: "Grandmother" },
+      "beti": { telugu: "కుతురు", english: "Daughter" },
       
       // Time and directions
       "subah": { telugu: "ఉదయం", english: "Morning" },
@@ -73,6 +75,7 @@ async function translateText(text: string): Promise<{
       "raat": { telugu: "రాత్రి", english: "Night" },
       "aaj": { telugu: "నేడు", english: "Today" },
       "kal": { telugu: "రేపు", english: "Tomorrow" },
+      "aram ka": { telugu: "ఎలా ఉన్నారు", english: "How are you" },
       
       // Numbers
       "ek": { telugu: "ఒకటి", english: "One" },
@@ -80,6 +83,7 @@ async function translateText(text: string): Promise<{
       "teen": { telugu: "మూడు", english: "Three" },
       "char": { telugu: "నాలుగు", english: "Four" },
       "paanch": { telugu: "ఐదు", english: "Five" },
+      "kam": { telugu: "థక్కువ", english: "Less" },
       
       // Colors
       "laal": { telugu: "ఎరుపు", english: "Red" },
@@ -87,6 +91,7 @@ async function translateText(text: string): Promise<{
       "hara": { telugu: "ఆకుపచ్చ", english: "Green" },
       "peela": { telugu: "పసుపు", english: "Yellow" },
       "kaala": { telugu: "నలుపు", english: "Black" },
+      "sono": { telugu: "బంగారం", english: "Gold" },
       
       // Animals
       "kutra": { telugu: "కుక్క", english: "Dog" },
@@ -94,6 +99,7 @@ async function translateText(text: string): Promise<{
       "ghoda": { telugu: "గుర్రం", english: "Horse" },
       "gaay": { telugu: "ఆవు", english: "Cow" },
       "bakri": { telugu: "మేక", english: "Goat" },
+      "suri": { telugu: "అడ పంది", english: "Pig/Sow" },
       
       // Elements
       "angar": { telugu: "నిప్పు", english: "Fire" },
@@ -101,10 +107,28 @@ async function translateText(text: string): Promise<{
       // Food and ingredients
       "inda": { telugu: "గుడ్డు", english: "Egg" },
       "guddu": { telugu: "గుడ్డు", english: "Egg" },
+      "bedra": { telugu: "తమాత", english: "Tomato" },
+      "amba": { telugu: "మామిడి కాయ", english: "Mango" },
+      "sitaphal": { telugu: "సీతాఫలం", english: "Custard Apple" },
+      "dana": { telugu: "గింజ", english: "Grain" },
+      
+      // Household and places
+      "ghar": { telugu: "నిలయం", english: "House" },
+      "davakhana": { telugu: "ఆసుపత్రి", english: "Hospital" },
       
       // Actions and verbs
       "khaldo": { telugu: "తిన్నా", english: "Ate" },
       "thinna": { telugu: "తిన్నా", english: "Ate" },
+      "jomat": { telugu: "వెళ్లకు", english: "Don't go" },
+      "katchi": { telugu: "ఎక్కడ ఉన్నావ్", english: "Where are" },
+      "kevdi jaro": { telugu: "ఎక్కడికి వెళ్తున్నావ్", english: "Where are you going" },
+      "sogo": { telugu: "నిద్ర పోయ", english: "Slept" },
+      "katalo": { telugu: "విసుగు", english: "Bore" },
+      
+      // Others
+      "kida": { telugu: "పురుగు", english: "Insect" },
+      "sota": { telugu: "రోకలి", english: "Pestle" },
+      "navvo": { telugu: "కొత్తది", english: "New" },
     };
     
     // Check for exact matches or word fragments in our dictionary
