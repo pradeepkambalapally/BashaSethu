@@ -107,19 +107,20 @@ async function translateText(text: string): Promise<{
     for (const word of words) {
       let matched = false;
       
-      // Check for exact matches first
-      if (banjaraDictionary[word]) {
+      // Check for exact matches first (case-insensitive)
+      const wordLower = word.toLowerCase();
+      if (banjaraDictionary[wordLower]) {
         matchedTranslations.push({
           original: word,
-          translation: banjaraDictionary[word]
+          translation: banjaraDictionary[wordLower]
         });
         matched = true;
         continue;
       }
       
-      // If no exact match, check for partial matches
+      // If no exact match, check for partial matches (case-insensitive)
       for (const [banjaraWord, translation] of Object.entries(banjaraDictionary)) {
-        if (word.includes(banjaraWord) || banjaraWord.includes(word)) {
+        if (wordLower.includes(banjaraWord) || banjaraWord.includes(wordLower)) {
           matchedTranslations.push({
             original: word,
             translation: translation
