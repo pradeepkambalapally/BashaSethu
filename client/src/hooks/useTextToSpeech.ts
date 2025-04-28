@@ -40,48 +40,83 @@ export default function useTextToSpeech({
     return typeof window !== 'undefined' && 'speechSynthesis' in window;
   };
 
-  // Speak text with the given language
-  const speak = (text: string, lang: string = 'en-US') => {
-    if (!isSynthesisSupported()) {
-      onError?.('Text-to-speech is not supported in this browser');
-      return;
-    }
+  // Play audio from URL
+  const playAudioFromUrl = async (url: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      try {
+        const audio = new Audio(url);
+        
+        audio.onplay = () => {
+          setIsSpeaking(true);
+          onStart?.();
+        };
+        
+        audio.onended = () => {
+          setIsSpeaking(false);
+          onEnd?.();
+          resolve();
+        };
+        
+        audio.onerror = (error) => {
+          setIsSpeaking(false);
+          onError?.('Failed to play audio');
+          console.error('Audio playback error:', error);
+          reject(error);
+        };
+        
+        audio.play().catch(error => {
+          setIsSpeaking(false);
+          onError?.('Failed to play audio');
+          console.error('Audio play error:', error);
+          reject(error);
+        });
+      } catch (error) {
+        setIsSpeaking(false);
+        onError?.(error instanceof Error ? error.message : String(error));
+        console.error('Audio setup error:', error);
+        reject(error);
+      }
+    });
+  };
 
+  // Generate speech using Google Translate TTS API
+  const getGoogleTTSUrl = (text: string, lang: string): string => {
+    // Note: This is an unofficial API and has usage limitations
+    return `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
+  };
+  
+  // Speak text with the given language
+  const speak = async (text: string, lang: string = 'en-US') => {
     // Cancel any ongoing speech
     if (synthRef.current) {
       synthRef.current.cancel();
     }
-
+    
     try {
+      // For Telugu use Google Translate TTS API
+      if (lang === 'te-IN' || lang === 'te') {
+        console.log('Using Google Translate TTS API for Telugu speech');
+        const url = getGoogleTTSUrl(text, 'te');
+        return playAudioFromUrl(url);
+      }
+      
+      // For other languages, use browser's speech synthesis
+      if (!isSynthesisSupported()) {
+        onError?.('Text-to-speech is not supported in this browser');
+        return;
+      }
+      
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = lang;
       
-      // For Telugu, try to optimize the voice selection
-      if (lang === 'te-IN' || lang === 'te') {
-        // Get available voices
+      // For English (India), try to optimize the voice selection
+      if (lang === 'en-IN') {
         const voices = synthRef.current?.getVoices() || [];
-        console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`));
+        const indianVoice = voices.find(voice => voice.lang.includes('en-IN'));
         
-        // Try to find an Indian voice
-        let teluguVoice = voices.find(
-          voice => voice.lang.includes('te') || 
-                  voice.lang.includes('hi-IN') || 
-                  voice.lang.includes('kn-IN') || 
-                  voice.lang.includes('ta-IN')
-        );
-        
-        // If no Telugu/Indian voice found, use any available voice
-        if (teluguVoice) {
-          console.log(`Using voice: ${teluguVoice.name} (${teluguVoice.lang})`);
-          utterance.voice = teluguVoice;
-          
-          // For non-Telugu voices, reduce rate slightly for better pronunciation
-          if (!teluguVoice.lang.includes('te')) {
-            utterance.rate = 0.9;
-            utterance.pitch = 1.1;
-          }
-        } else {
-          console.log('No suitable voice found for Telugu, using default');
+        if (indianVoice) {
+          console.log(`Using voice: ${indianVoice.name} (${indianVoice.lang})`);
+          utterance.voice = indianVoice;
         }
       }
       

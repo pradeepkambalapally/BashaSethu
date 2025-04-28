@@ -22,8 +22,12 @@ export default function TranslationTabs({
 }: TranslationTabsProps) {
   const { speak, isSpeaking, voicesLoaded } = useTextToSpeech();
 
-  const playTranslation = (text: string, lang: string) => {
-    speak(text, lang === "english" ? "en-US" : "te-IN");
+  const playTranslation = async (text: string, lang: string) => {
+    try {
+      await speak(text, lang === "english" ? "en-US" : "te-IN");
+    } catch (error) {
+      console.error("Failed to play translation:", error);
+    }
   };
 
   return (
@@ -91,7 +95,7 @@ export default function TranslationTabs({
                         <i className={`fas fa-${isSpeaking ? "volume-up" : "play"} text-sm`}></i>
                       </button>
                       <div className="ml-3 text-sm text-gray-600">
-                        Speak in Telugu <span className="text-xs">({voicesLoaded ? 'Ready' : 'Loading...'})</span>
+                        Speak in Telugu <span className="text-xs">(Google TTS)</span>
                       </div>
                     </div>
                     
@@ -128,7 +132,7 @@ export default function TranslationTabs({
                         <i className={`fas fa-${isSpeaking ? "volume-up" : "play"} text-sm`}></i>
                       </button>
                       <div className="ml-3 text-sm text-gray-600">
-                        Speak in English <span className="text-xs">({voicesLoaded ? 'Ready' : 'Loading...'})</span>
+                        Speak in English <span className="text-xs">(Browser TTS)</span>
                       </div>
                     </div>
                     
