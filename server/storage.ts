@@ -1,32 +1,28 @@
 import { translations, type Translation, type InsertTranslation } from "@shared/schema";
+import { db } from "./db";
+import { desc, eq } from "drizzle-orm";
 
 export interface IStorage {
   getTranslations(limit?: number): Promise<Translation[]>;
   addTranslation(translation: InsertTranslation): Promise<Translation>;
 }
 
-export class MemStorage implements IStorage {
-  private translations: Translation[];
-  private currentId: number;
-
-  constructor() {
-    this.translations = [];
-    this.currentId = 1;
-  }
-
+export class DatabaseStorage implements IStorage {
   async getTranslations(limit = 10): Promise<Translation[]> {
-    return this.translations
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, limit);
+    return db.select()
+      .from(translations)
+      .orderBy(desc(translations.timestamp))
+      .limit(limit);
   }
 
   async addTranslation(insertTranslation: InsertTranslation): Promise<Translation> {
-    const id = this.currentId++;
-    const timestamp = new Date();
-    const translation: Translation = { ...insertTranslation, id, timestamp };
-    this.translations.push(translation);
+    const [translation] = await db
+      .insert(translations)
+      .values(insertTranslation)
+      .returning();
+    
     return translation;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

@@ -3,33 +3,55 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertTranslationSchema, translationResponseSchema } from "@shared/schema";
 import axios from "axios";
+import { TranslationServiceClient } from '@google-cloud/translate';
 
-// Mock translation function - in a real implementation this would use a proper translation API
+// Translation function using Google Cloud Translation API
 async function translateText(text: string): Promise<{
   teluguText: string;
   englishText: string;
 }> {
-  // In a real application, you would use a translation API here
-  // For example, Google Translate API:
-  // const teluguResponse = await axios.post('https://translation.googleapis.com/language/translate/v2', {
-  //   q: text,
-  //   source: 'bn', // Banjara language code
-  //   target: 'te', // Telugu language code
-  //   key: process.env.GOOGLE_API_KEY
-  // });
-  
-  // Since we don't have direct access to a Banjara-specific translation API,
-  // in a real app you would need to use a suitable API that supports this language
-  // For now, let's simulate a translation with some example text
-  
-  // In a real app, NEVER do this! Always use a real translation API.
-  // This is only for demonstration purposes as required for this prototype.
-  
-  // Simple character mapping for demo
-  const teluguText = `${text} (Telugu translation)`;
-  const englishText = `${text} (English translation)`;
-  
-  return { teluguText, englishText };
+  // If we have the Google Cloud API key
+  if (process.env.GOOGLE_CLOUD_API_KEY) {
+    try {
+      // For Telugu translation
+      const teluguResponse = await axios.post('https://translation.googleapis.com/language/translate/v2', {
+        q: text,
+        // Note: Banjara doesn't have an official code, so using Hindi (hi) as closest approximation
+        // In a real implementation, you may need to use a more specific approach for Banjara
+        source: 'hi',
+        target: 'te', // Telugu language code
+        key: process.env.GOOGLE_CLOUD_API_KEY
+      });
+      
+      // For English translation
+      const englishResponse = await axios.post('https://translation.googleapis.com/language/translate/v2', {
+        q: text,
+        source: 'hi', // Approximating Banjara with Hindi
+        target: 'en', // English language code
+        key: process.env.GOOGLE_CLOUD_API_KEY
+      });
+      
+      return {
+        teluguText: teluguResponse.data.data.translations[0].translatedText,
+        englishText: englishResponse.data.data.translations[0].translatedText
+      };
+      
+    } catch (error) {
+      console.error('Translation API error:', error);
+      // Fallback in case of API error
+      return { 
+        teluguText: `${text} (Translation API error)`, 
+        englishText: `${text} (Translation API error)` 
+      };
+    }
+  } else {
+    // Fallback when no API key is provided
+    console.warn('No Google Cloud API key available. Using fallback translations.');
+    return { 
+      teluguText: `${text} (Telugu translation - API key needed)`, 
+      englishText: `${text} (English translation - API key needed)` 
+    };
+  }
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
