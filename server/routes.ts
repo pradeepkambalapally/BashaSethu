@@ -94,6 +94,9 @@ async function translateText(text: string): Promise<{
       "ghoda": { telugu: "గుర్రం", english: "Horse" },
       "gaay": { telugu: "ఆవు", english: "Cow" },
       "bakri": { telugu: "మేక", english: "Goat" },
+      
+      // Elements
+      "angar": { telugu: "నిప్పు", english: "Fire" },
     };
     
     // Check for exact matches or word fragments in our dictionary
