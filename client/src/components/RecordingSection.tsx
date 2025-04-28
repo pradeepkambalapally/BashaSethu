@@ -10,8 +10,31 @@ interface RecordingSectionProps {
 export default function RecordingSection({ onRecognize }: RecordingSectionProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [permissionState, setPermissionState] = useState<string>("prompt");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+  
+  // Check microphone permission on component mount
+  useEffect(() => {
+    const checkMicrophonePermission = async () => {
+      try {
+        // Check if navigator.permissions is available
+        if (navigator.permissions && navigator.permissions.query) {
+          const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+          setPermissionState(permissionStatus.state);
+          
+          // Listen for permission changes
+          permissionStatus.onchange = () => {
+            setPermissionState(permissionStatus.state);
+          };
+        }
+      } catch (error) {
+        console.warn("Could not check microphone permission:", error);
+      }
+    };
+    
+    checkMicrophonePermission();
+  }, []);
   
   const { 
     startRecording, 
@@ -20,10 +43,19 @@ export default function RecordingSection({ onRecognize }: RecordingSectionProps)
   } = useSpeechRecognition({
     onResult: (text) => {
       if (text) {
+        console.log("Recognition result received:", text);
+        toast({
+          title: "Speech Recognized",
+          description: "Processing your Banjara speech...",
+        });
         onRecognize(text);
+        // Auto-stop after getting a result
+        setIsRecording(false);
+        clearRecordingTimer();
       }
     },
     onError: (error) => {
+      console.error("Speech recognition error in component:", error);
       toast({
         title: "Recording Error",
         description: error,
@@ -57,23 +89,74 @@ export default function RecordingSection({ onRecognize }: RecordingSectionProps)
   };
 
   const toggleRecording = async () => {
-    if (isRecording) {
+    try {
+      if (isRecording) {
+        console.log("Stopping recording...");
+        setIsRecording(false);
+        clearRecordingTimer();
+        stopRecording();
+        
+        toast({
+          title: "Recording Stopped",
+          description: "Processing your speech...",
+        });
+      } else {
+        // Check microphone permissions first
+        if (permissionState === "denied") {
+          toast({
+            title: "Microphone Access Denied",
+            description: "Please allow microphone access in your browser settings to use speech recognition.",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        if (!isRecognitionSupported) {
+          toast({
+            title: "Speech Recognition Not Supported",
+            description: "Your browser doesn't support speech recognition. Please try Chrome or Edge.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        console.log("Starting recording...");
+        // Request microphone permission explicitly
+        try {
+          if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // Stop the stream immediately, we just needed it to trigger permission
+            stream.getTracks().forEach(track => track.stop());
+          }
+        } catch (error) {
+          console.error("Error accessing microphone:", error);
+          toast({
+            title: "Microphone Access Error",
+            description: "Could not access your microphone. Please check browser permissions.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        setIsRecording(true);
+        startRecordingTimer();
+        
+        toast({
+          title: "Recording Started",
+          description: "Speak in Banjara language. Recording will automatically stop when you pause.",
+        });
+        
+        startRecording();
+      }
+    } catch (error) {
+      console.error("Error in recording toggle:", error);
+      toast({
+        title: "Recording Error",
+        description: "An unexpected error occurred while trying to record audio.",
+        variant: "destructive"
+      });
       setIsRecording(false);
       clearRecordingTimer();
-      stopRecording();
-    } else {
-      if (!isRecognitionSupported) {
-        toast({
-          title: "Speech Recognition Not Supported",
-          description: "Your browser doesn't support speech recognition. Please try Chrome or Edge.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      setIsRecording(true);
-      startRecordingTimer();
-      startRecording();
     }
   };
 
@@ -89,8 +172,9 @@ export default function RecordingSection({ onRecognize }: RecordingSectionProps)
         {/* Recording Status */}
         <div className="mb-4 h-6">
           {isRecording && (
-            <div className="text-indigo-500 font-medium">
-              Recording... <span>{formatTime(recordingTime)}</span>
+            <div className="text-indigo-500 font-medium flex items-center">
+              <span className="mr-2 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+              Recording... <span className="ml-1">{formatTime(recordingTime)}</span>
             </div>
           )}
         </div>
@@ -114,8 +198,16 @@ export default function RecordingSection({ onRecognize }: RecordingSectionProps)
         </button>
         
         <p className="text-gray-600 text-center text-sm">
-          Tap the microphone and speak in Banjara language
+          {permissionState === "denied" 
+            ? "Microphone access denied. Please enable in browser settings." 
+            : "Tap the microphone and speak in Banjara language"}
         </p>
+        
+        {!isRecognitionSupported && (
+          <p className="text-red-500 text-xs mt-2">
+            Speech recognition is not supported in your browser. Please try Chrome or Edge.
+          </p>
+        )}
       </div>
     </div>
   );

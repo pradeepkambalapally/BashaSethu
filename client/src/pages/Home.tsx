@@ -63,6 +63,17 @@ export default function Home() {
       <header className="text-center mb-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Banjara Translator</h1>
         <p className="text-gray-600">Speak in Banjara, get translations in Telugu and English</p>
+        <div className="mt-3 text-sm text-gray-500 bg-indigo-50 p-3 rounded-md border border-indigo-100">
+          <p className="mb-2"><strong>How to use:</strong></p>
+          <ol className="list-decimal list-inside text-left">
+            <li>Click the microphone button to start recording</li>
+            <li>Speak clearly in Banjara language (angar, khaldo, guddu, etc.)</li>
+            <li>When you pause speaking, recording will stop automatically</li>
+            <li>View translations in Telugu and English</li>
+            <li>Click on the speaker icon to hear the Telugu pronunciation</li>
+          </ol>
+          <p className="mt-2 text-xs"><i className="fas fa-info-circle mr-1"></i> Make sure your browser has microphone permissions enabled</p>
+        </div>
       </header>
 
       {/* Recording Section */}
