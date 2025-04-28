@@ -115,27 +115,66 @@ async function translateText(text: string): Promise<{
     for (const word of words) {
       let matched = false;
       
+      // Remove punctuation for matching
+      const cleanWordLower = word.toLowerCase().replace(/[^\w\s]/g, '');
+      
       // Check for exact matches first (case-insensitive)
-      const wordLower = word.toLowerCase();
-      if (banjaraDictionary[wordLower]) {
+      if (banjaraDictionary[cleanWordLower]) {
         matchedTranslations.push({
           original: word,
-          translation: banjaraDictionary[wordLower]
+          translation: banjaraDictionary[cleanWordLower]
         });
         matched = true;
         continue;
       }
       
-      // If no exact match, check for partial matches (case-insensitive)
+      // If no exact match, check for partial matches but be more precise
+      const partialMatches = [];
+      
       for (const [banjaraWord, translation] of Object.entries(banjaraDictionary)) {
-        if (wordLower.includes(banjaraWord) || banjaraWord.includes(wordLower)) {
-          matchedTranslations.push({
-            original: word,
-            translation: translation
+        // Add each potential match with its score
+        if (cleanWordLower === banjaraWord) {
+          // Exact match (highest priority)
+          partialMatches.push({ 
+            word: banjaraWord, 
+            translation,
+            score: 1.0
           });
-          matched = true;
-          break;
+        } else if (cleanWordLower.startsWith(banjaraWord + ' ') || cleanWordLower.endsWith(' ' + banjaraWord)) {
+          // Word boundary match (high priority)
+          partialMatches.push({ 
+            word: banjaraWord, 
+            translation,
+            score: 0.9
+          });
+        } else if (cleanWordLower === banjaraWord.substring(0, cleanWordLower.length)) {
+          // Prefix match (medium priority)
+          partialMatches.push({ 
+            word: banjaraWord, 
+            translation,
+            score: 0.7
+          });
+        } else if (cleanWordLower.length >= 4 && banjaraWord.length >= 4 && 
+                   (cleanWordLower.includes(banjaraWord) || banjaraWord.includes(cleanWordLower))) {
+          // Substring match for longer words only (low priority)
+          // Only consider substring matches for words of 4+ characters
+          partialMatches.push({ 
+            word: banjaraWord, 
+            translation,
+            score: 0.5
+          });
         }
+      }
+      
+      // Sort matches by score and pick the best one
+      if (partialMatches.length > 0) {
+        partialMatches.sort((a, b) => b.score - a.score);
+        
+        matchedTranslations.push({
+          original: word,
+          translation: partialMatches[0].translation
+        });
+        matched = true;
       }
       
       // If no match found, leave as is
