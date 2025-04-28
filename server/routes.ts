@@ -128,33 +128,84 @@ async function translateText(text: string): Promise<{
         continue;
       }
       
+      // Phonetic similarity helper function
+      // Scores how similar two words sound (simplified version)
+      const getPhoneticSimilarity = (word1: string, word2: string): number => {
+        // If lengths are very different, they likely sound different
+        if (Math.abs(word1.length - word2.length) > 2) {
+          return 0.2;
+        }
+        
+        // Convert to lowercase
+        word1 = word1.toLowerCase();
+        word2 = word2.toLowerCase();
+        
+        // Count matching consonants (more important for sound)
+        const consonants = 'bcdfghjklmnpqrstvwxyz';
+        let consonantMatches = 0;
+        let totalConsonants = 0;
+        
+        for (let i = 0; i < word1.length; i++) {
+          if (consonants.includes(word1[i])) {
+            totalConsonants++;
+            if (i < word2.length && word1[i] === word2[i]) {
+              consonantMatches++;
+            }
+          }
+        }
+        
+        // Calculate similarity as percentage of matching consonants (0.0 to 1.0)
+        return totalConsonants > 0 ? consonantMatches / totalConsonants : 0.3;
+      };
+      
       // If no exact match, check for partial matches but be more precise
       const partialMatches = [];
       
       for (const [banjaraWord, translation] of Object.entries(banjaraDictionary)) {
         // Add each potential match with its score
-        if (cleanWordLower === banjaraWord) {
+        
+        // Special case for "khaldo", "kaldo", etc. - should match the "ate" translation
+        if ((cleanWordLower === "kaldo" || cleanWordLower === "caldo") && 
+             (banjaraWord === "khaldo" || banjaraWord === "thinna")) {
+          partialMatches.push({ 
+            word: banjaraWord, 
+            translation,
+            score: 0.95
+          });
+        }
+        else if (cleanWordLower === banjaraWord) {
           // Exact match (highest priority)
           partialMatches.push({ 
             word: banjaraWord, 
             translation,
             score: 1.0
           });
-        } else if (cleanWordLower.startsWith(banjaraWord + ' ') || cleanWordLower.endsWith(' ' + banjaraWord)) {
+        } 
+        else if (getPhoneticSimilarity(cleanWordLower, banjaraWord) > 0.7) {
+          // High phonetic similarity
+          partialMatches.push({ 
+            word: banjaraWord, 
+            translation,
+            score: 0.9 * getPhoneticSimilarity(cleanWordLower, banjaraWord)
+          });
+        }
+        else if (cleanWordLower.startsWith(banjaraWord + ' ') || cleanWordLower.endsWith(' ' + banjaraWord)) {
           // Word boundary match (high priority)
           partialMatches.push({ 
             word: banjaraWord, 
             translation,
-            score: 0.9
+            score: 0.85
           });
-        } else if (cleanWordLower === banjaraWord.substring(0, cleanWordLower.length)) {
+        } 
+        else if (cleanWordLower === banjaraWord.substring(0, cleanWordLower.length)) {
           // Prefix match (medium priority)
           partialMatches.push({ 
             word: banjaraWord, 
             translation,
             score: 0.7
           });
-        } else if (cleanWordLower.length >= 4 && banjaraWord.length >= 4 && 
+        } 
+        else if (cleanWordLower.length >= 4 && banjaraWord.length >= 4 && 
                    (cleanWordLower.includes(banjaraWord) || banjaraWord.includes(cleanWordLower))) {
           // Substring match for longer words only (low priority)
           // Only consider substring matches for words of 4+ characters
