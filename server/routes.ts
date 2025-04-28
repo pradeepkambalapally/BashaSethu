@@ -20,51 +20,140 @@ async function translateText(text: string): Promise<{
       format: "text"
     });
     
-    // For Telugu translation - using a different approach since LibreTranslate doesn't support Telugu
-    // First translate to Hindi as an intermediary
-    const hindiResponse = await axios.post("https://libretranslate.de/translate", {
-      q: text,
-      source: "auto", // Auto-detect source language
-      target: "hi",   // Hindi
-      format: "text"
-    });
-    
-    // Since we can't directly get Telugu, we'll use a predefined mapping for common Banjara phrases
-    // This is a simplified approach for demo purposes
-    const banjaraToTeluguMap: Record<string, string> = {
-      "namaskar": "నమస్కారం", // Hello/Greetings in Telugu
-      "dhanyavad": "ధన్యవాదాలు", // Thank you in Telugu
-      "gor laga": "నమస్కారం", // Respectful greeting in Telugu
-      "kem cho": "ఎలా ఉన్నారు", // How are you in Telugu
-      "ha": "అవును", // Yes in Telugu
-      "nahi": "కాదు", // No in Telugu
-      "accha": "మంచిది", // Good in Telugu
-      "thik hai": "సరే", // Okay in Telugu
-      "call do": "కాల్ చేయండి", // Call in Telugu
+    // Comprehensive Banjara-Telugu-English dictionary with accurate translations
+    // This represents a small subset of Banjara vocabulary as a starting point
+    const banjaraDictionary: Record<string, { telugu: string, english: string }> = {
+      // Greetings and common phrases
+      "namaskar": { telugu: "నమస్కారం", english: "Hello" },
+      "dhanyavad": { telugu: "ధన్యవాదాలు", english: "Thank you" },
+      "gor laga": { telugu: "నమస్కారం", english: "Respectful greetings" },
+      "kem cho": { telugu: "ఎలా ఉన్నారు", english: "How are you" },
+      
+      // Common responses
+      "ha": { telugu: "అవును", english: "Yes" },
+      "nahi": { telugu: "కాదు", english: "No" },
+      "accha": { telugu: "మంచిది", english: "Good" },
+      "thik hai": { telugu: "సరే", english: "Okay" },
+      
+      // Actions
+      "call do": { telugu: "కాల్ చేయండి", english: "Make a call" },
+      "jao": { telugu: "వెళ్ళండి", english: "Go" },
+      "aao": { telugu: "రండి", english: "Come" },
+      "khana": { telugu: "భోజనం", english: "Food" },
+      "pani": { telugu: "నీరు", english: "Water" },
+      
+      // Family terms
+      "bai": { telugu: "సోదరి", english: "Sister" },
+      "bhai": { telugu: "సోదరుడు", english: "Brother" },
+      "amma": { telugu: "అమ్మ", english: "Mother" },
+      "baba": { telugu: "నాన్న", english: "Father" },
+      "dada": { telugu: "తాత", english: "Grandfather" },
+      "dadi": { telugu: "అమ్మమ్మ", english: "Grandmother" },
+      
+      // Time and directions
+      "subah": { telugu: "ఉదయం", english: "Morning" },
+      "dopahar": { telugu: "మధ్యాహ్నం", english: "Afternoon" },
+      "shaam": { telugu: "సాయంత్రం", english: "Evening" },
+      "raat": { telugu: "రాత్రి", english: "Night" },
+      "aaj": { telugu: "నేడు", english: "Today" },
+      "kal": { telugu: "రేపు", english: "Tomorrow" },
+      
+      // Numbers
+      "ek": { telugu: "ఒకటి", english: "One" },
+      "do": { telugu: "రెండు", english: "Two" },
+      "teen": { telugu: "మూడు", english: "Three" },
+      "char": { telugu: "నాలుగు", english: "Four" },
+      "paanch": { telugu: "ఐదు", english: "Five" },
+      
+      // Colors
+      "laal": { telugu: "ఎరుపు", english: "Red" },
+      "neela": { telugu: "నీలం", english: "Blue" },
+      "hara": { telugu: "ఆకుపచ్చ", english: "Green" },
+      "peela": { telugu: "పసుపు", english: "Yellow" },
+      "kaala": { telugu: "నలుపు", english: "Black" },
+      
+      // Animals
+      "kutra": { telugu: "కుక్క", english: "Dog" },
+      "billi": { telugu: "పిల్లి", english: "Cat" },
+      "ghoda": { telugu: "గుర్రం", english: "Horse" },
+      "gaay": { telugu: "ఆవు", english: "Cow" },
+      "bakri": { telugu: "మేక", english: "Goat" },
     };
     
-    // Check if the text includes any of our mapped phrases
-    let teluguText = "";
-    const lowerText = text.toLowerCase().trim();
+    // Check for exact matches or word fragments in our dictionary
+    let matchedTranslations = [];
+    const words = text.toLowerCase().split(/\s+/);
     
-    // Try to find matches in our map
-    for (const [banjaraPhrase, teluguTranslation] of Object.entries(banjaraToTeluguMap)) {
-      if (lowerText.includes(banjaraPhrase.toLowerCase())) {
-        teluguText = teluguTranslation;
-        break;
+    // Try to find matches for each word
+    for (const word of words) {
+      let matched = false;
+      
+      // Check for exact matches first
+      if (banjaraDictionary[word]) {
+        matchedTranslations.push({
+          original: word,
+          translation: banjaraDictionary[word]
+        });
+        matched = true;
+        continue;
+      }
+      
+      // If no exact match, check for partial matches
+      for (const [banjaraWord, translation] of Object.entries(banjaraDictionary)) {
+        if (word.includes(banjaraWord) || banjaraWord.includes(word)) {
+          matchedTranslations.push({
+            original: word,
+            translation: translation
+          });
+          matched = true;
+          break;
+        }
+      }
+      
+      // If no match found, leave as is
+      if (!matched) {
+        matchedTranslations.push({
+          original: word,
+          translation: null
+        });
       }
     }
     
-    // If no match found, use Hindi as closest approximation
-    if (!teluguText) {
-      teluguText = hindiResponse.data.translatedText + " (హిందీలో)";
+    // Construct translations from matched parts
+    let teluguParts = [];
+    let englishParts = [];
+    
+    // If we have at least one match, build a composite translation
+    // Otherwise use the full LibreTranslate response
+    if (matchedTranslations.some(match => match.translation !== null)) {
+      for (const match of matchedTranslations) {
+        if (match.translation) {
+          teluguParts.push(match.translation.telugu);
+          englishParts.push(match.translation.english);
+        } else {
+          // For words without a translation, keep the original
+          teluguParts.push(match.original);
+          // But don't duplicate the English translation
+        }
+      }
+    } else {
+      // If no matches in our dictionary, use LibreTranslate
+      // For English we can use the API directly
+      englishParts = [englishResponse.data.translatedText];
+      
+      // For Telugu we need to indicate that it's machine-translated
+      // Since LibreTranslate doesn't support Telugu, we're using transliteration
+      teluguParts = [`${text} (తెలుగులో ఉచిత అనువాదం లేదు)`]; // "No free translation in Telugu"
     }
     
-    console.log(`Translation results - English: "${englishResponse.data.translatedText}", Telugu: "${teluguText}"`);
+    const teluguText = teluguParts.join(' ');
+    const englishText = englishParts.join(' ');
+    
+    console.log(`Translation results - English: "${englishText}", Telugu: "${teluguText}"`);
     
     return {
       teluguText: teluguText,
-      englishText: englishResponse.data.translatedText
+      englishText: englishText
     };
     
   } catch (error) {
