@@ -12,11 +12,27 @@ export default function useTextToSpeech({
   onError
 }: TextToSpeechOptions = {}) {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voicesLoaded, setVoicesLoaded] = useState(false);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   
   // Initialize speech synthesis on first use
   if (typeof window !== 'undefined' && !synthRef.current) {
     synthRef.current = window.speechSynthesis;
+    
+    // Load voices
+    const loadVoices = () => {
+      const voices = synthRef.current?.getVoices() || [];
+      if (voices.length > 0) {
+        setVoicesLoaded(true);
+        console.log('Text-to-speech voices loaded, total:', voices.length);
+      }
+    };
+    
+    // Check if voices are already loaded
+    loadVoices();
+    
+    // Listen for voices changed event
+    window.speechSynthesis.onvoiceschanged = loadVoices;
   }
 
   // Check if speech synthesis is supported
@@ -40,6 +56,35 @@ export default function useTextToSpeech({
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = lang;
       
+      // For Telugu, try to optimize the voice selection
+      if (lang === 'te-IN' || lang === 'te') {
+        // Get available voices
+        const voices = synthRef.current?.getVoices() || [];
+        console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`));
+        
+        // Try to find an Indian voice
+        let teluguVoice = voices.find(
+          voice => voice.lang.includes('te') || 
+                  voice.lang.includes('hi-IN') || 
+                  voice.lang.includes('kn-IN') || 
+                  voice.lang.includes('ta-IN')
+        );
+        
+        // If no Telugu/Indian voice found, use any available voice
+        if (teluguVoice) {
+          console.log(`Using voice: ${teluguVoice.name} (${teluguVoice.lang})`);
+          utterance.voice = teluguVoice;
+          
+          // For non-Telugu voices, reduce rate slightly for better pronunciation
+          if (!teluguVoice.lang.includes('te')) {
+            utterance.rate = 0.9;
+            utterance.pitch = 1.1;
+          }
+        } else {
+          console.log('No suitable voice found for Telugu, using default');
+        }
+      }
+      
       // Set event handlers
       utterance.onstart = () => {
         setIsSpeaking(true);
@@ -54,6 +99,7 @@ export default function useTextToSpeech({
       utterance.onerror = (event) => {
         setIsSpeaking(false);
         onError?.(event.error);
+        console.error('Speech synthesis error:', event);
       };
       
       // Speak the text
@@ -63,6 +109,7 @@ export default function useTextToSpeech({
     } catch (error) {
       setIsSpeaking(false);
       onError?.(error instanceof Error ? error.message : String(error));
+      console.error('Text-to-speech error:', error);
     }
   };
 
@@ -78,6 +125,7 @@ export default function useTextToSpeech({
     speak,
     stop,
     isSpeaking,
+    voicesLoaded,
     isSynthesisSupported: isSynthesisSupported()
   };
 }
