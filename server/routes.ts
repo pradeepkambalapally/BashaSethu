@@ -97,6 +97,10 @@ async function translateText(text: string): Promise<{
       
       // Elements
       "angar": { telugu: "నిప్పు", english: "Fire" },
+      
+      // Food and ingredients
+      "inda": { telugu: "గుడ్డు", english: "Egg" },
+      "guddu": { telugu: "గుడ్డు", english: "Egg" },
     };
     
     // Check for exact matches or word fragments in our dictionary
