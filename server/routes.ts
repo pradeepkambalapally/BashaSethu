@@ -14,7 +14,7 @@ async function translateText(text: string): Promise<{
     
     // Set a short timeout to prevent long waiting times
     const axiosConfig = {
-      timeout: 3000 // 3 seconds timeout
+      timeout: 7000// 3 seconds timeout
     };
     
     // Initialize variables to hold API responses
@@ -40,7 +40,6 @@ async function translateText(text: string): Promise<{
     // This represents a small subset of Banjara vocabulary as a starting point
     const banjaraDictionary: Record<string, { telugu: string, english: string }> = {
       // Greetings and common phrases
-      "namaskar": { telugu: "నమస్కారం", english: "Hello" },
       "dhanyavad": { telugu: "ధన్యవాదాలు", english: "Thank you" },
       "gor laga": { telugu: "నమస్కారం", english: "Respectful greetings" },
       "kem cho": { telugu: "ఎలా ఉన్నారు", english: "How are you" },
@@ -52,7 +51,7 @@ async function translateText(text: string): Promise<{
       "thik hai": { telugu: "సరే", english: "Okay" },
       
       // Actions
-      "call do": { telugu: "కాల్ చేయండి", english: "Make a call" },
+      "kacchi": { telugu: "ఎక్కడ ఉన్నారు", english: "where are you" },
       "jao": { telugu: "వెళ్ళండి", english: "Go" },
       "aao": { telugu: "రండి", english: "Come" },
       "khana": { telugu: "భోజనం", english: "Food" },
@@ -76,37 +75,36 @@ async function translateText(text: string): Promise<{
       "aaj": { telugu: "నేడు", english: "Today" },
       "kal": { telugu: "రేపు", english: "Tomorrow" },
       "aram ka": { telugu: "ఎలా ఉన్నారు", english: "How are you" },
-      
+      "raath":{ telugu:"రాత్రి",english:"night"},
+      "aaro koni kai":{ telugu:"ఈరోజు రావడం లేదు",english:"not coming today"},
       // Numbers
       "ek": { telugu: "ఒకటి", english: "One" },
-      "do": { telugu: "రెండు", english: "Two" },
+      "di": { telugu: "రెండు", english: "Two" },
       "teen": { telugu: "మూడు", english: "Three" },
       "char": { telugu: "నాలుగు", english: "Four" },
       "paanch": { telugu: "ఐదు", english: "Five" },
       "kam": { telugu: "థక్కువ", english: "Less" },
       
       // Colors
-      "laal": { telugu: "ఎరుపు", english: "Red" },
-      "neela": { telugu: "నీలం", english: "Blue" },
-      "hara": { telugu: "ఆకుపచ్చ", english: "Green" },
-      "peela": { telugu: "పసుపు", english: "Yellow" },
-      "kaala": { telugu: "నలుపు", english: "Black" },
+      "laalo": { telugu: "ఎరుపు", english: "Red" },
+      "neelo": { telugu: "నీలం", english: "Blue" },
+      "haro": { telugu: "ఆకుపచ్చ", english: "Green" },
+      "peelo": { telugu: "పసుపు", english: "Yellow" },
+      "kaalo": { telugu: "నలుపు", english: "Black" },
       "sono": { telugu: "బంగారం", english: "Gold" },
       
       // Animals
       "kutra": { telugu: "కుక్క", english: "Dog" },
       "billi": { telugu: "పిల్లి", english: "Cat" },
-      "ghoda": { telugu: "గుర్రం", english: "Horse" },
-      "gaay": { telugu: "ఆవు", english: "Cow" },
-      "bakri": { telugu: "మేక", english: "Goat" },
+      "ghodi": { telugu: "గుర్రం", english: "Horse" },
+      "gaavdi": { telugu: "ఆవు", english: "Cow" },
+      "cheli": { telugu: "మేక", english: "Goat" },
       "suri": { telugu: "అడ పంది", english: "Pig/Sow" },
-      
       // Elements
       "angar": { telugu: "నిప్పు", english: "Fire" },
       
       // Food and ingredients
       "inda": { telugu: "గుడ్డు", english: "Egg" },
-      "guddu": { telugu: "గుడ్డు", english: "Egg" },
       "bedra": { telugu: "తమాత", english: "Tomato" },
       "amba": { telugu: "మామిడి కాయ", english: "Mango" },
       "sitaphal": { telugu: "సీతాఫలం", english: "Custard Apple" },
@@ -129,6 +127,15 @@ async function translateText(text: string): Promise<{
       "kida": { telugu: "పురుగు", english: "Insect" },
       "sota": { telugu: "రోకలి", english: "Pestle" },
       "navvo": { telugu: "కొత్తది", english: "New" },
+
+      "kai karochi": { telugu: "ఏమి చేస్తున్నారు", english: "what are you doing" },
+      "bedhra":{ telugu: "టమోటా", english: "Tomato" },
+      "chapni":{ telugu: "బల్లి", english: "Lizard" },
+      "thu kevdi jarochi":{telugu:"మీరు ఎక్కడికి వెళ్తున్నారు",english:"where are you going"},
+      "tham kaccho":{telugu:"మీరు ఎక్కడ ఉన్నారు",english:"where are you"},
+      "tar nam kay":{telugu:"నీ పేరు ఏమిటి",english:"what is your name"},
+      "varuka":{telugu:"ఎలా ఉన్నావు",english:"how are you?"},
+
     };
     
     // Check for exact matches or word fragments in our dictionary

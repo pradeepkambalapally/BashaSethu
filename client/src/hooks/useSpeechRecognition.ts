@@ -65,7 +65,7 @@ export default function useSpeechRecognition({
       console.log("Speech recognition instance created");
       
       // Setup recognition
-      recognitionRef.current.continuous = true;
+      recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = true;
       recognitionRef.current.maxAlternatives = 1;
       

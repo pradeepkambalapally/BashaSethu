@@ -61,7 +61,7 @@ export default function Home() {
     <div className="min-h-screen max-w-lg mx-auto px-4 py-8 bg-gray-50 text-gray-800">
       {/* Header */}
       <header className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Banjara Translator</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">Basha Sethu</h1>
         <p className="text-gray-600">Speak in Banjara, get translations in Telugu and English</p>
         <div className="mt-3 text-sm text-gray-500 bg-indigo-50 p-3 rounded-md border border-indigo-100">
           <p className="mb-2"><strong>How to use:</strong></p>
